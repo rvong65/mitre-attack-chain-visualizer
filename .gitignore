@@ -1,0 +1,23 @@
+# Data: exclude raw logs and rebuild artifacts; keep polished demo CSVs
+data/raw/
+data/processed/*
+!data/processed/events_with_chains_polished.csv
+!data/processed/chains_summary_polished.csv
+data/bad_input.csv
+data/empty.csv
+data/test_events.csv
+
+# ML / model artifacts
+models/
+*.joblib
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Parquet and stray images from old experiments
+*.parquet
+data/processed/*.png
