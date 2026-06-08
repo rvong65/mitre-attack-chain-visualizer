@@ -101,6 +101,10 @@ flowchart LR
 
 The live app loads pre-built polished chains from `data/processed/`. Raw Splunk Attack Data logs are not included—download them separately to rebuild from scratch. You can also upload your own Sysmon/EDR CSV via the sidebar (recommended limit ~50 MB on Streamlit Cloud free tier).
 
+**Screenshot** 
+
+![Home screen](screenshots/01-home.png)
+
 ---
 
 ## Quick Start
