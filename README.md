@@ -94,9 +94,12 @@ flowchart LR
 ---
 
 ## 🚀 Live Demo
+**Demo video**  
+*Coming Soon*
 
-**Demo Link Coming Soon!**
+**[▶ Open the live app on Streamlit Cloud](https://mitre-attack-chain-visualizer.streamlit.app/)** <!-- replace with deployed URL --> 
 
+The live app loads pre-built polished chains from `data/processed/`. Raw Splunk Attack Data logs are not included—download them separately to rebuild from scratch. You can also upload your own Sysmon/EDR CSV via the sidebar (recommended limit ~50 MB on Streamlit Cloud free tier).
 
 ---
 
