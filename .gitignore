@@ -7,6 +7,10 @@ data/bad_input.csv
 data/empty.csv
 data/test_events.csv
 
+# Local export downloads from Streamlit UI
+chains_stix_export.json
+chains_summary_export.csv
+
 # ML / model artifacts
 models/
 *.joblib

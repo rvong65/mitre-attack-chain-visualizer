@@ -25,3 +25,29 @@ jobs:
 
       - name: Run tests
         run: pytest tests/ -q --tb=short
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t mitre-chain-viz .
+
+      - name: Run container smoke test
+        run: |
+          docker run -d --name mitre-app -p 8501:8501 mitre-chain-viz
+          for i in $(seq 1 24); do
+            if curl -sf http://localhost:8501/_stcore/health; then
+              echo "Streamlit health check passed"
+              docker logs mitre-app | tail -20
+              docker stop mitre-app
+              exit 0
+            fi
+            echo "Waiting for Streamlit... ($i/24)"
+            sleep 5
+          done
+          echo "Health check failed"
+          docker logs mitre-app
+          exit 1

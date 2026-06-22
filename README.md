@@ -1,34 +1,46 @@
-# MITRE ATT&CK Chain Visualizer
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
+    <img src="docs/assets/logo.svg" alt="MITRE ATT&amp;CK Chain Visualizer" width="480"/>
+  </picture>
+</p>
+
+[![Release](https://img.shields.io/github/v/release/rvong65/mitre-attack-chain-visualizer?label=release)](https://github.com/rvong65/mitre-attack-chain-visualizer/releases)
+[![CI](https://github.com/rvong65/mitre-attack-chain-visualizer/actions/workflows/tests.yml/badge.svg)](https://github.com/rvong65/mitre-attack-chain-visualizer/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mitre-attack-chain-visualizer.streamlit.app/)
 
 Process trees and event chains hide real attack behavior inside overwhelming EDR/Sysmon telemetry. This project groups related events into **scored, explainable attack chains**, maps them to MITRE ATT&CK techniques and tactics, and presents them on an interactive timeline—inspired by [SentinelOne Storyline](https://www.sentinelone.com/blog/rapid-threat-hunting-with-deep-visibility-feature-spotlight/) and [CrowdStrike Falcon](https://www.crowdstrike.com/platform/endpoint-security/falcon-insight-xdr/) behavioral graphing.
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mitre-attack-chain-visualizer.streamlit.app/)
-
 ---
 
-## Table of Contents
+<details open>
+<summary><strong>Table of Contents</strong></summary>
 
-**Get started**
-- [Live Demo](#live-demo)
-- [Features](#features)
-- [Quick Start](#quick-start)
+| Section | Description |
+|---------|-------------|
+| **Get started** | |
+| 🚀 [Live Demo](#live-demo) | Try the Streamlit app (Cloud or local) |
+| ✨ [Features](#features) | Capabilities at a glance |
+| ⚡ [Quick Start](#quick-start) | Clone, install, run, test, Docker |
+| **Overview** | |
+| 🎯 [Problem & Motivation](#problem-motivation) | Why chain-level analysis matters |
+| 🛠️ [Tech Stack](#tech-stack) | Languages, libraries, CI |
+| 📊 [Data Sources & Attribution](#data-sources) | Splunk Attack Data (T1059.001, T1003.x, T1547.001) |
+| 📌 [Version history](#version-history) | Release highlights |
+| **Technical** | |
+| 🏗️ [Architecture & Design Choices](#architecture-design-choices) | System design and pipeline |
+| ↳ [Full architecture doc](docs/architecture.md) | Goals, system diagram, modules, deployment |
+| ↳ [Development Journey](#development-journey) | Build timeline diagram |
+| 🛡️ [Safety Considerations](#safety-considerations) | Ethics and guardrails |
+| 🔄 [CI/CD](#cicd) | GitHub Actions and deployment |
+| 📈 [Project Status & Build Log](#project-status) | Milestone checklist |
+| 📁 [Repository Layout](#repository-layout) | File tree |
+| **Legal & contact** | |
+| 📄 [License](#license) | MIT + dataset attribution |
+| 🤝 [Contact / Next Steps](#contact) | Feedback and roadmap |
 
-**Overview**
-- [Problem & Motivation](#problem-motivation)
-- [Tech Stack](#tech-stack)
-- [Data Sources & Attribution](#data-sources)
-
-**Technical**
-- [Architecture & Design Choices](#architecture-design-choices)
-  - [Development Journey](#development-journey)
-- [Safety Considerations](#safety-considerations)
-- [CI/CD](#cicd)
-- [Project Status & Build Log](#project-status)
-- [Repository Layout](#repository-layout)
-
-**Legal & contact**
-- [License](#license)
-- [Contact / Next Steps](#contact)
+</details>
 
 ---
 
@@ -45,7 +57,7 @@ Process trees and event chains hide real attack behavior inside overwhelming EDR
 
 **Screenshot:**
 
-![Home screen](docs/screenshots/01-home.png)
+![Demo screenshot](docs/screenshots/demo-screenshot.png)
 
 ---
 
@@ -57,8 +69,9 @@ Process trees and event chains hide real attack behavior inside overwhelming EDR
 - **Upload your own Sysmon/EDR CSV** — validation, size checks, graceful error handling
 - **Filter by confidence, chain length, and tactic** — focus on high-signal activity
 - **Interactive timeline** — Plotly scatter with hover explanations, cmdline snippets, tactic coloring
+- **Per-chain process-tree graph** — parent–child storyline view for a selected chain
 - **Chain summary table** — confidence-coded cells (green / yellow / red tiers)
-- **Export filtered chains as CSV**
+- **Export filtered chains** — CSV summary or STIX 2.1 JSON bundle
 
 **Expected upload columns** (minimum): `timestamp`, `process_path`, `cmdline`, `parent_process`.
 
@@ -90,7 +103,15 @@ streamlit run app.py
 
 Open **http://localhost:8501**.
 
-### 3. Rebuild from raw logs (optional)
+### 3. Docker (optional)
+
+```bash
+docker compose up --build
+```
+
+Open **http://localhost:8501**. The image bundles `app.py`, `src/`, polished demo CSVs, and branding assets.
+
+### 4. Rebuild from raw logs (optional)
 
 Raw Atomic Red Team logs are **not** committed (license/size). To regenerate all pipeline outputs:
 
@@ -122,7 +143,7 @@ pip install -r requirements-dev.txt
 pytest tests/ -q
 ```
 
-Loader and feature tests skip automatically when `data/raw/` or intermediate processed files are missing. Chain-detection smoke tests run without raw logs.
+Loader and feature tests skip automatically when `data/raw/` or intermediate processed files are missing. Chain-detection, STIX export, and chain-graph tests run offline.
 
 ---
 
@@ -137,7 +158,7 @@ This project addresses that gap by:
 - Grouping events into process chains via parent–child relationships and time proximity
 - Mapping chains to MITRE ATT&CK with **confidence scores** and human-readable explanations
 - Surfacing **multi-event chains** first—the highest-signal attack storylines
-- Providing an analyst-friendly timeline with filters, hover detail, and CSV export
+- Providing an analyst-friendly timeline, process-tree graph, filters, hover detail, and export
 
 Interpretability and triage are built in. Confidence gating reduces noise; every highlighted chain includes context an analyst can act on—practical design for security operations workflows.
 
@@ -152,6 +173,7 @@ Interpretability and triage are built in. Confidence gating reduces noise; every
 ![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
 ![Plotly](https://img.shields.io/badge/plotly-%233F4F75.svg?style=for-the-badge&logo=plotly&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-%23FF4B4B.svg?style=for-the-badge&logo=streamlit&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
 
 | Layer | Tools |
@@ -159,8 +181,9 @@ Interpretability and triage are built in. Confidence gating reduces noise; every
 | **Data processing** | Python, Pandas, NumPy |
 | **Visualization** | Plotly, Streamlit |
 | **Detection** | Rule-based chain construction + weighted confidence scoring |
-| **Deployment** | [Streamlit Cloud](https://streamlit.io/cloud) |
-| **CI** | GitHub Actions (pytest) |
+| **Integration** | STIX 2.1 JSON export |
+| **Deployment** | [Streamlit Cloud](https://streamlit.io/cloud), Docker |
+| **CI** | GitHub Actions (pytest + Docker smoke test) |
 
 ---
 
@@ -188,97 +211,40 @@ This project uses curated attack simulation logs from the [Splunk Attack Data re
 
 ---
 
+<a id="version-history"></a>
+
+## 📌 Version history
+
+| Version | Highlights | Notes |
+|---------|------------|-------|
+| **[1.1.0](CHANGELOG.md#110---2026-06-22)** | Docker, STIX export, chain graph, architecture docs, branding | [Releases](https://github.com/rvong65/mitre-attack-chain-visualizer/releases) · [CHANGELOG](CHANGELOG.md#110---2026-06-22) |
+| **[1.0.0](CHANGELOG.md#100---2026-06-18)** | MVP pipeline, Streamlit Cloud, CI, polished demo data | Public since 2026-06-08; tagged 2026-06-18 · [CHANGELOG](CHANGELOG.md#100---2026-06-18) |
+
+---
+
 <a id="architecture-design-choices"></a>
 
 ## 🏗️ Architecture & Design Choices
 
-```mermaid
-flowchart TB
-    subgraph Client["Client Layer"]
-        U[Analyst / Demo user]
-        UI[Streamlit UI<br/>app.py]
-    end
+Raw telemetry flows through ingest → optional features → chain detection/refinement → polish → the Streamlit dashboard (filters, timeline, process-tree graph, CSV/STIX export). Rule-based confidence and benign-root filtering keep output analyst-ready without black-box ML.
 
-    subgraph Ingest["Ingestion Layer — pipeline.py + loaders/"]
-        RAW[Sysmon · PowerShell · Falcon logs]
-        LOAD[Per-source parsers<br/>sysmon · powershell · falcon]
-        SCHEMA[Unified schema<br/>schema.py]
-    end
-
-    subgraph Features["Feature Layer — features/ (optional)"]
-        FEAT[Cmdline & parent-child signals<br/>technique-specific flags]
-    end
-
-    subgraph Chains["Chain Layer — chain_detection.py · chain_refine.py"]
-        LINK[Union-find linking<br/>parent-child · GUID · time windows]
-        RULES[MITRE technique rules<br/>confidence 0–100]
-        BENIGN[Benign-root filtering]
-        EXP[Human-readable explanations]
-    end
-
-    subgraph Polish["Polish Layer — chain_polish.py"]
-        GATE[Confidence gating<br/>≥40% · drop benign-root]
-        TACTIC[Tactic mapping · summary tables]
-    end
-
-    subgraph Artifacts["Artifact Layer — data/processed/"]
-        CSV[Staged CSV artifacts<br/>chains · events · polished demo]
-    end
-
-    subgraph Guard["Safety Layer — app.py"]
-        VAL[Upload validation<br/>size · schema · parse errors]
-        TRIAGE[Filters · timeline · CSV export]
-    end
-
-    U --> UI
-    UI --> VAL
-    VAL -->|sample / valid upload| TRIAGE
-    VAL -->|invalid / empty| UI
-    RAW --> LOAD --> SCHEMA --> FEAT
-    FEAT --> LINK --> RULES
-    RULES --> BENIGN --> EXP
-    EXP --> GATE --> TACTIC --> CSV
-    CSV --> UI
-    TRIAGE --> UI
-```
-
-**Pipeline summary:** Raw logs (Sysmon, PowerShell, CrowdStrike Falcon) are loaded and normalized ([`src/pipeline.py`](src/pipeline.py), [`src/loaders/`](src/loaders/)) into a unified schema (`timestamp`, `process_path`, `parent_process`, `cmdline`, `technique_id`, etc.). Optional feature engineering ([`src/features/`](src/features/)) enriches events with cmdline and parent–child signals. **Chain detection** ([`src/chain_detection.py`](src/chain_detection.py)) groups events via union-find and time proximity. **Refinement** ([`src/chain_refine.py`](src/chain_refine.py)) applies GUID-first linking, technique rules, confidence scoring, benign-root filtering, and explanations. **Polish** ([`src/chain_polish.py`](src/chain_polish.py)) gates chains for the UI and builds summary tables. The **Streamlit** dashboard ([`app.py`](app.py)) loads polished chains or uploaded CSVs, filters by confidence/length/tactic, and renders an interactive timeline.
+**Full design** — goals, end-to-end diagram, module map, deployment topologies (local / Docker / Streamlit Cloud), and architecture-level safety: **[docs/architecture.md](docs/architecture.md)**
 
 **Key design decisions**
 
 | Decision | Rationale |
 |----------|-----------|
-| Chain-level analysis | Techniques and tactics are inferred from multi-event sequences—not isolated rows—matching how EDR storylines present attacks |
-| Rule-based confidence | Interpretable scoring (base + sequence bonuses) with plain-language explanations; avoids black-box ML on overlapping simulation data |
-| Confidence gating | Default filters (≥40% confidence, multi-event only) surface analyst-ready storylines and reduce Splunk/Windows noise |
-| Benign-root filtering | Chains rooted in benign processes (e.g. svchost, splunkd) without suspicious indicators are excluded from the polished view |
-| Reproducibility | Pipeline writes staged CSVs under `data/processed/`; only polished demo outputs are committed to GitHub |
-
-**Pipeline outputs** (`data/processed/` — only polished files are committed):
-
-| Stage | Events | Summary |
-|-------|--------|---------|
-| Chain detection | `events_with_chains.csv` | `chains_summary.csv` |
-| Refined | `events_with_chains_refined.csv` | `chains_summary_refined.csv` |
-| Polished (UI-ready, **committed**) | `events_with_chains_polished.csv` | `chains_summary_polished.csv` |
+| Chain-level analysis | Techniques inferred from multi-event sequences—matching EDR storyline presentation |
+| Rule-based confidence | Interpretable scoring with plain-language explanations |
+| Confidence gating | Default ≥40% confidence and multi-event filters reduce noise |
+| STIX export (MVP) | Attack-pattern refs and groupings for SIEM handoff without full observables scope |
+| Reproducibility | Staged CSV artifacts; Docker image for one-command local run |
 
 <a id="development-journey"></a>
 
 ### Development Journey
 
-Initially explored per-event rule-based and ML classification approaches (RandomForest, ensembles, SMOTE). While some signals were captured, accuracy plateaued due to heavy event overlap and PowerShell dominance in the Atomic Red Team data. Pivoted to process chain detection and timeline visualization—a more practical, industry-aligned solution that better surfaces meaningful multi-stage attack sequences (Execution → Credential Access → Persistence), mirroring tools like SentinelOne Storyline and CrowdStrike Threat Graph. Earlier classification experiments are preserved in [`archived/`](archived/).
-
-```mermaid
-flowchart LR
-    A[Multi-source log ingest<br/>Sysmon · PowerShell · Falcon] --> B[Per-event ML experiments<br/>rules · RF · SMOTE]
-    B --> C[Pivot to chain detection<br/>union-find · time windows]
-    C --> D[Refinement<br/>confidence · benign filter · explanations]
-    D --> E[Polish & tactic mapping<br/>UI-ready summaries]
-    E --> F[Streamlit UI<br/>dark theme · filters · timeline]
-    F --> G[Upload validation<br/>polished demo CSVs]
-    G --> H[Streamlit Cloud deploy<br/>MVP live]
-    H --> I[GitHub Actions tests<br/>offline pytest]
-```
+Pivoted from per-event ML (RandomForest, SMOTE) to chain-level detection after accuracy plateaued on overlapping PowerShell-heavy simulation data. Earlier experiments are in [`archived/`](archived/). Build timeline and deployment details: [docs/architecture.md](docs/architecture.md#development-journey).
 
 ---
 
@@ -299,18 +265,14 @@ flowchart LR
 
 ## 🔄 CI/CD
 
-**GitHub Actions** runs on every push and pull request to `main` / `master`:
+**GitHub Actions** ([`.github/workflows/tests.yml`](.github/workflows/tests.yml)) on every push and PR to `main` / `master`:
 
-| Step | Action |
-|------|--------|
-| **Trigger** | Push or PR to `main` / `master` |
-| **Environment** | `ubuntu-latest`, Python 3.11 |
-| **Install** | `pip install -r requirements-dev.txt` |
-| **Test** | `pytest tests/ -q` |
+| Job | Steps |
+|-----|-------|
+| **test** | Python 3.11 → `pip install -r requirements-dev.txt` → `pytest tests/ -q` |
+| **docker** | `docker build` → run container → `curl` Streamlit `/_stcore/health` |
 
-Workflow file: [`.github/workflows/tests.yml`](.github/workflows/tests.yml)
-
-Loader and feature tests skip when `data/raw/` or intermediate processed files are absent; chain-detection smoke tests run offline without raw logs. **Streamlit Cloud** deploys independently from the `main` branch when connected to this repository (`app.py` + `requirements.txt`).
+**Streamlit Cloud** deploys independently from `main` (`app.py` + `requirements.txt`).
 
 ---
 
@@ -319,7 +281,7 @@ Loader and feature tests skip when `data/raw/` or intermediate processed files a
 ## 📈 Project Status & Build Log
 
 | Step | Focus | Status |
-|------|-------|------|
+|------|-------|--------|
 | **1 — Data** | Load and unify Sysmon, PowerShell, and Falcon logs; unified schema | ✅ |
 | **2 — Features** | Cmdline patterns, parent–child links, technique-specific signals | ✅ |
 | **3 — Pivot** | Archived per-event ML; shifted to chain-level detection | ✅ |
@@ -327,10 +289,11 @@ Loader and feature tests skip when `data/raw/` or intermediate processed files a
 | **5 — Refine** | Confidence scoring, benign filtering, explanations | ✅ |
 | **6 — Polish** | Tactic colors, summary tables, multi-event gating | ✅ |
 | **7 — UI** | Streamlit dashboard: dark theme, filters, timeline, export | ✅ |
-| **8 — Deploy** | Upload validation, readability fixes, Streamlit Cloud | ✅ |
+| **8 — Deploy** | Upload validation, Streamlit Cloud | ✅ |
 | **9 — CI** | GitHub Actions pytest workflow | ✅ |
+| **10 — v1.1** | Docker, STIX export, chain graph, docs, branding, releases | ✅ |
 
-**Current status:** ✅ MVP complete — live on Streamlit Cloud, polished demo data committed, CSV upload/export, and CI enabled.
+**Current status:** ✅ v1.1.0 — Docker, STIX export, process-tree graph, architecture docs, and formal changelog/releases.
 
 ---
 
@@ -341,14 +304,20 @@ Loader and feature tests skip when `data/raw/` or intermediate processed files a
 ```
 mitre-attack-chain-visualizer/
 ├── app.py                         # Streamlit dashboard (Streamlit Cloud entry point)
+├── Dockerfile                     # Container image for local / reproducible runs
+├── docker-compose.yml             # One-command docker compose up
+├── CHANGELOG.md                   # Version-by-version change history
 ├── requirements.txt               # Runtime dependencies
 ├── requirements-dev.txt           # Dev deps (pytest); local & CI only
 ├── LICENSE                        # MIT License
 ├── README.md                      # Project overview
 ├── .gitignore                     # Raw logs, .venv, intermediate processed outputs
+├── .dockerignore                  # Docker build context exclusions
 ├── .github/
-│   └── workflows/tests.yml        # GitHub Actions pytest on push/PR to main
+│   └── workflows/tests.yml        # pytest + Docker smoke test on push/PR
 ├── docs/
+│   ├── architecture.md            # Goals, diagram, modules, deployment, safety
+│   ├── assets/                    # logo.svg, logo-dark.svg, icon.svg, favicon.svg
 │   └── screenshots/               # README demo images
 ├── data/
 │   ├── raw/                       # Local only (gitignored) — Splunk Attack Data logs
@@ -360,12 +329,16 @@ mitre-attack-chain-visualizer/
 │   ├── chain_detection.py         # Union-find chain building
 │   ├── chain_refine.py            # MITRE rules, confidence, explanations
 │   ├── chain_polish.py            # UI-ready polish & gating
-│   ├── timeline_viz_helpers.py    # Plotly timeline helpers (used by app.py)
+│   ├── chain_graph.py             # Per-chain process-tree Plotly graph
+│   ├── stix_export.py             # STIX 2.1 bundle builder
+│   ├── timeline_viz_helpers.py    # Timeline helpers
 │   ├── features/                  # Optional feature enrichment
 │   └── loaders/                   # Sysmon, Falcon, PowerShell parsers
 ├── archived/                      # Per-event ML experiments (source only)
-└── tests/                         # pytest suite (chain smoke tests run offline)
+└── tests/                         # pytest suite (offline smoke tests)
 ```
+
+Local virtualenv (`.venv/`) is gitignored — create and activate it per [Quick Start](#quick-start).
 
 ---
 
@@ -387,11 +360,11 @@ Open to feedback, suggestions, and mission-aligned collaboration.
 
 **Potential future directions** *(no promises on timeline)*:
 
-- STIX/TAXII export for SIEM integration
+- TAXII feed ingestion for STIX bundles
 - Graph-database backend for large-scale chain queries
 - LLM-assisted chain summarization (with guardrails)
 - Additional Atomic Red Team techniques and data sources
-- Docker image for reproducible local + cloud deployment
+- Upload column mapping UI for heterogeneous EDR exports
 
 ---
 

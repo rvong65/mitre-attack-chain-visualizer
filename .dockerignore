@@ -1,0 +1,16 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.git/
+.github/
+data/raw/
+data/processed/*
+!data/processed/events_with_chains_polished.csv
+!data/processed/chains_summary_polished.csv
+archived/
+tests/
+*.md
+!README.md
+screenshots/

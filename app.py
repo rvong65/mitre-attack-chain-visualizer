@@ -1,6 +1,7 @@
 """
 MITRE ATT&CK Attack Chain Visualizer — Streamlit app.
 """
+import base64
 import sys
 from pathlib import Path
 
@@ -21,10 +22,19 @@ from src.chain_polish import (
     add_tactic_mapping,
     build_chains_summary_polished,
 )
+from src.chain_graph import plot_chain_graph_figure
+from src.stix_export import bundle_to_json, chains_to_stix_bundle
 
-st.set_page_config(page_title="ATT&CK Chain Visualizer", layout="wide")
+ICON_PATH = ROOT / "docs" / "assets" / "favicon.svg"
+PAGE_ICON = str(ICON_PATH) if ICON_PATH.exists() else "🔗"
 
-# Dark cyber theme CSS — full dark mode: bg #0e1117, panels #1e1e1e, text #e0e0e0/#ffffff, accents #00ff9f
+st.set_page_config(
+    page_title="ATT&CK Chain Visualizer",
+    page_icon=PAGE_ICON,
+    layout="wide",
+)
+
+# Dark custom cyber theme CSS — full dark mode: bg #0e1117, panels #1e1e1e, text #e0e0e0/#ffffff, accents #00ff9f
 st.markdown(
     """
     <style>
@@ -204,9 +214,25 @@ def _table_style_confidence(df: pd.DataFrame, conf_col: str = "Confidence Score"
     )
 
 
-# Title and subtitle
-st.title("MITRE ATT&CK Attack Chain Visualizer")
-st.markdown("**From real Splunk Atomic Red Team logs**")
+# Title and subtitle 
+logo_path = ROOT / "docs" / "assets" / "icon.svg"
+if logo_path.exists():
+    icon_b64 = base64.b64encode(logo_path.read_bytes()).decode()
+    st.markdown(
+        f"""
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.25rem;">
+          <img src="data:image/svg+xml;base64,{icon_b64}" width="42" height="42" alt="" style="flex-shrink:0;">
+          <h1 style="margin:0;padding:0;color:#00ff9f;font-size:2.25rem;line-height:1.2;">
+            MITRE ATT&amp;CK Chain Visualizer
+          </h1>
+        </div>
+        <p style="margin:0 0 1rem 52px;color:#e0e0e0;"><strong>From real Splunk Atomic Red Team logs</strong></p>
+        """,
+        unsafe_allow_html=True,
+    )
+else:
+    st.title("MITRE ATT&CK Attack Chain Visualizer")
+    st.markdown("**From real Splunk Atomic Red Team logs**")
 
 # Sidebar (filters that don't depend on data)
 with st.sidebar:
@@ -220,7 +246,9 @@ with st.sidebar:
             "- Events are **grouped into process chains** using parent-child relationships and time proximity.\n"
             "- Chains are **mapped to MITRE ATT&CK** techniques/tactics with confidence scores.\n"
             "- **High-confidence chains (≥50%)** show likely attack sequences (e.g., Execution → Credential Access).\n"
-            "- Use **filters** to focus on suspicious activity."
+            "- Use the **sidebar filters (confidence, chain length, tactic)** to narrow results to high-signal chains.\n"
+            "- **Export** filtered chains as CSV or STIX 2.1 JSON.\n"
+            "- View a **process-tree graph** per chain (parent–child storyline)."
         )
     with st.expander("Background info", expanded=False):
         st.write(
@@ -305,7 +333,7 @@ preview = summary_display.head(5)
 if not preview.empty:
     st.dataframe(
         _table_style_confidence(preview),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
     # Timeline preview (compact)
@@ -337,11 +365,13 @@ if not preview.empty:
                 xaxis=dict(tickformat="%Y-%m-%d %H:%M:%S", title_font=dict(color="#ffffff"), tickfont=dict(color="#ffffff")),
                 yaxis=dict(title_font=dict(color="#ffffff"), tickfont=dict(color="#ffffff")),
             )
-            st.plotly_chart(fig_preview, use_container_width=True)
+            st.plotly_chart(fig_preview, width="stretch")
 st.divider()
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["Chain Summary Table", "Interactive Timeline", "Raw Events"])
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["Chain Summary Table", "Interactive Timeline", "Chain Graph", "Raw Events"]
+)
 
 with tab1:
     st.subheader("Chain Summary")
@@ -351,9 +381,30 @@ with tab1:
         mask = summary_display.astype(str).apply(lambda row: row.str.contains(search, case=False, na=False).any(), axis=1)
         summary_display = summary_display[mask]
     styled = _table_style_confidence(summary_display)
-    st.dataframe(styled, use_container_width=True, hide_index=True)
-    csv_export = summary_display.to_csv(index=False).encode("utf-8")
-    st.download_button("Export summary as CSV", data=csv_export, file_name="chains_summary_export.csv", mime="text/csv")
+    st.dataframe(styled, width="stretch", hide_index=True)
+    col_csv, col_stix = st.columns(2)
+    with col_csv:
+        csv_export = summary_display.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            "Export summary as CSV",
+            data=csv_export,
+            file_name="chains_summary_export.csv",
+            mime="text/csv",
+            key="export_csv",
+        )
+    with col_stix:
+        try:
+            stix_bundle = chains_to_stix_bundle(summary_display)
+            stix_json = bundle_to_json(stix_bundle).encode("utf-8")
+            st.download_button(
+                "Export as STIX 2.1 JSON",
+                data=stix_json,
+                file_name="chains_stix_export.json",
+                mime="application/json",
+                key="export_stix",
+            )
+        except ValueError as exc:
+            st.caption(f"STIX export unavailable: {exc}")
 
 with tab2:
     st.subheader("Interactive Timeline")
@@ -399,9 +450,24 @@ with tab2:
             legend_title_text="Tactic",
             height=600,
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
 with tab3:
+    st.subheader("Chain Process Tree")
+    st.caption("Parent–child process storyline for a single filtered chain.")
+    if summary_filtered.empty or events_filtered.empty:
+        st.info("No chains after filters.")
+    else:
+        chain_options = summary_filtered[summary_chain_col].tolist()
+        selected_chain = st.selectbox("Select chain", chain_options, key="graph_chain_select")
+        chain_events = events_filtered[events_filtered[cid_col] == selected_chain]
+        if chain_events.empty:
+            st.warning("No events for selected chain.")
+        else:
+            fig_tree = plot_chain_graph_figure(chain_events, chain_id=selected_chain)
+            st.plotly_chart(fig_tree, width="stretch")
+
+with tab4:
     st.subheader("Raw Events (filtered)")
     events_display = events_display_df(events_filtered)
     # Black text on white; Chain Confidence (%) gets same green/yellow/red tiers as summary
@@ -424,7 +490,7 @@ with tab3:
         )
     else:
         raw_styled = events_display.style.set_properties(**{"color": "black", "background-color": "white"})
-    st.dataframe(raw_styled, use_container_width=True, hide_index=True)
+    st.dataframe(raw_styled, width="stretch", hide_index=True)
 
 # Footer
 st.markdown(
