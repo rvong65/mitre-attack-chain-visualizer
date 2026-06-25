@@ -6,6 +6,13 @@ Release dates reflect when a version was **tagged on GitHub** (Release), not nec
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-06-25
+
+### Added
+
+- **Privacy & data** disclosures in README (Safety section), architecture docs, and Streamlit sidebar expander (How it works)
+- Live Demo privacy note for public Streamlit Cloud demo
+
 ## [1.1.0] - 2026-06-22
 
 ### Added
@@ -42,3 +49,8 @@ First **tagged** release. The repository and Streamlit app were **public since 2
 - CSV upload validation and export
 - Polished demo data (~12K events / ~11K chains) committed for clone-and-run
 - Live deployment on [Streamlit Cloud](https://mitre-attack-chain-visualizer.streamlit.app/)
+
+[Unreleased]: https://github.com/rvong65/mitre-attack-chain-visualizer/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/rvong65/mitre-attack-chain-visualizer/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/rvong65/mitre-attack-chain-visualizer/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/rvong65/mitre-attack-chain-visualizer/releases/tag/v1.0.0

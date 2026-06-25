@@ -1,13 +1,15 @@
-<p align="center">
+<h1 align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.svg">
-    <img src="docs/assets/logo.svg" alt="MITRE ATT&amp;CK Chain Visualizer" width="480"/>
+    <img src="docs/assets/logo.svg" alt="MITRE ATT&amp;CK Chain Visualizer" width="400"/>
   </picture>
-</p>
+</h1>
 
 [![Release](https://img.shields.io/github/v/release/rvong65/mitre-attack-chain-visualizer?label=release)](https://github.com/rvong65/mitre-attack-chain-visualizer/releases)
 [![CI](https://github.com/rvong65/mitre-attack-chain-visualizer/actions/workflows/tests.yml/badge.svg)](https://github.com/rvong65/mitre-attack-chain-visualizer/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Analysis](https://img.shields.io/badge/Analysis-Chain%20storylines-00CC7A?style=flat-square)](https://github.com/rvong65/mitre-attack-chain-visualizer#features)
+[![Deploy](https://img.shields.io/badge/Deploy-Docker%20%7C%20local-2496ED?style=flat-square&logo=docker&logoColor=white)](https://github.com/rvong65/mitre-attack-chain-visualizer#run-with-docker)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mitre-attack-chain-visualizer.streamlit.app/)
 
 Process trees and event chains hide real attack behavior inside overwhelming EDR/Sysmon telemetry. This project groups related events into **scored, explainable attack chains**, maps them to MITRE ATT&CK techniques and tactics, and presents them on an interactive timeline—inspired by [SentinelOne Storyline](https://www.sentinelone.com/blog/rapid-threat-hunting-with-deep-visibility-feature-spotlight/) and [CrowdStrike Falcon](https://www.crowdstrike.com/platform/endpoint-security/falcon-insight-xdr/) behavioral graphing.
@@ -32,7 +34,7 @@ Process trees and event chains hide real attack behavior inside overwhelming EDR
 | 🏗️ [Architecture & Design Choices](#architecture-design-choices) | System design and pipeline |
 | ↳ [Full architecture doc](docs/architecture.md) | Goals, system diagram, modules, deployment |
 | ↳ [Development Journey](#development-journey) | Build timeline diagram |
-| 🛡️ [Safety Considerations](#safety-considerations) | Ethics and guardrails |
+| 🛡️ [Safety Considerations](#safety-considerations) | Ethics, guardrails, and data privacy |
 | 🔄 [CI/CD](#cicd) | GitHub Actions and deployment |
 | 📈 [Project Status & Build Log](#project-status) | Milestone checklist |
 | 📁 [Repository Layout](#repository-layout) | File tree |
@@ -52,6 +54,7 @@ Process trees and event chains hide real attack behavior inside overwhelming EDR
 
 **Before you open the app:**
 - **Cold start:** This app runs on Streamlit Community Cloud and may go to sleep after inactivity. If you see **“Zzzz — This app has gone to sleep due to inactivity”**, click **“Yes, get this app back up!”** to wake it — anyone can do this; you don’t need to contact the maintainer. Startup may take a minute after you click.
+- **Privacy:** The app does not send your data to third-party AI, analytics, or external APIs. On this cloud demo, uploaded CSVs are processed in your session on Streamlit’s infrastructure — use [local or Docker](#run-with-docker) for sensitive telemetry. See [Privacy & data handling](#privacy-data-handling).
 
 **Note:** The live app loads pre-built polished chains from `data/processed/`. Raw Splunk Attack Data logs are not included—download them separately to rebuild from scratch. You can also upload your own Sysmon/EDR CSV via the sidebar (recommended limit ~50 MB on Streamlit Cloud free tier).
 
@@ -102,6 +105,8 @@ streamlit run app.py
 ```
 
 Open **http://localhost:8501**.
+
+<a id="run-with-docker"></a>
 
 ### 3. Docker (optional)
 
@@ -217,7 +222,8 @@ This project uses curated attack simulation logs from the [Splunk Attack Data re
 
 | Version | Highlights | Notes |
 |---------|------------|-------|
-| **[1.1.0](CHANGELOG.md#110---2026-06-22)** | Docker, STIX export, chain graph, architecture docs, branding | [Releases](https://github.com/rvong65/mitre-attack-chain-visualizer/releases) · [CHANGELOG](CHANGELOG.md#110---2026-06-22) |
+| **[1.1.1](CHANGELOG.md#111---2026-06-25)** | Privacy & data-handling documentation | [Releases](https://github.com/rvong65/mitre-attack-chain-visualizer/releases) · [CHANGELOG](CHANGELOG.md#111---2026-06-25) |
+| **[1.1.0](CHANGELOG.md#110---2026-06-22)** | Docker, STIX export, chain graph, architecture docs, branding | [CHANGELOG](CHANGELOG.md#110---2026-06-22) |
 | **[1.0.0](CHANGELOG.md#100---2026-06-18)** | MVP pipeline, Streamlit Cloud, CI, polished demo data | Public since 2026-06-08; tagged 2026-06-18 · [CHANGELOG](CHANGELOG.md#100---2026-06-18) |
 
 ---
@@ -259,6 +265,21 @@ Pivoted from per-event ML (RandomForest, SMOTE) to chain-level detection after a
 | **Validate untrusted uploads** | File size limits (~50 MB guidance), parse error handling, schema checks, and fallback to built-in demo data on failure |
 | **Protect sensitive telemetry** | Do not upload production EDR/SIEM exports to public Streamlit deployments without authorization; raw logs are not committed to the repo |
 
+<a id="privacy-data-handling"></a>
+
+### Privacy & data handling
+
+This application **does not integrate third-party AI, analytics, or external APIs** that receive your uploaded data. Processing (filtering, charts, CSV/STIX export) runs in the Streamlit Python session only.
+
+| Data you submit | Where it may be sent | Notes |
+|-----------------|----------------------|-------|
+| **Built-in demo CSVs** | Nowhere (read from the repo/image) | Default view uses committed polished chains in `data/processed/` |
+| **CSV you upload — local or Docker** | Stays on your machine | Parsed in memory; exports download to your browser only |
+| **CSV you upload — Streamlit Cloud** | [Streamlit Community Cloud](https://streamlit.io/cloud) hosting | Session-scoped processing on Streamlit’s servers; **not** forwarded to this app’s code as outbound API calls |
+| **CSV / STIX exports you download** | Your device only | Generated in-session; you control where files are saved |
+
+**Not in scope of this app:** Streamlit’s own platform telemetry, browser/CDN delivery of Plotly/Streamlit assets, or your organization’s network policies. For production or classified telemetry, run locally or via Docker.
+
 ---
 
 <a id="cicd"></a>
@@ -292,8 +313,9 @@ Pivoted from per-event ML (RandomForest, SMOTE) to chain-level detection after a
 | **8 — Deploy** | Upload validation, Streamlit Cloud | ✅ |
 | **9 — CI** | GitHub Actions pytest workflow | ✅ |
 | **10 — v1.1** | Docker, STIX export, chain graph, docs, branding, releases | ✅ |
+| **11 — v1.1.1** | Privacy & data-handling documentation (README, app, architecture) | ✅ |
 
-**Current status:** ✅ v1.1.0 — Docker, STIX export, process-tree graph, architecture docs, and formal changelog/releases.
+**Current status:** ✅ v1.1.1 — privacy documentation; v1.1.0 features (Docker, STIX, chain graph) on Streamlit Cloud.
 
 ---
 

@@ -248,7 +248,10 @@ with st.sidebar:
             "- **High-confidence chains (≥50%)** show likely attack sequences (e.g., Execution → Credential Access).\n"
             "- Use the **sidebar filters (confidence, chain length, tactic)** to narrow results to high-signal chains.\n"
             "- **Export** filtered chains as CSV or STIX 2.1 JSON.\n"
-            "- View a **process-tree graph** per chain (parent–child storyline)."
+            "- View a **process-tree graph** per chain (parent–child storyline).\n"
+            "- **Privacy:** Your data is not sent to third-party AI or analytics APIs. "
+            "Uploads are processed in this session only; on the public cloud demo, "
+            "files are handled on Streamlit’s infrastructure — use local/Docker for sensitive telemetry."
         )
     with st.expander("Background info", expanded=False):
         st.write(

@@ -184,13 +184,26 @@ flowchart LR
 | **STIX export scope** | MVP bundles reference MITRE technique IDs and chain metadata — not full process/file observables or raw cmdlines as STIX objects |
 | **Supply chain** | Runtime deps pinned in `requirements.txt`; Docker and CI rebuild on every push |
 
+### Privacy & data handling
+
+The application code does **not** call external APIs with user-supplied data (no LLM, analytics SDKs, or SIEM upload integrations). Uploaded CSVs are parsed in the Streamlit session; exports are generated for browser download only.
+
+| Concern | Behavior |
+|---------|----------|
+| **Local / Docker runtime** | Uploads and processing stay on the operator’s machine (or container); no app-level outbound data sharing |
+| **Streamlit Cloud runtime** | Uploads exist in the hosted session on Streamlit’s infrastructure; users should avoid production telemetry on the public demo |
+| **Built-in demo data** | Loaded from committed polished CSVs in the repository or Docker image |
+| **STIX / CSV export** | Artifacts are built in-session and downloaded by the user; not auto-uploaded anywhere |
+| **Third-party services** | No MITRE, Splunk, or AI vendor APIs receive user files from this codebase; standard browser/CDN loading of Streamlit/Plotly assets may still apply |
+
 ---
 
 ## Version
 
-**Document version:** v1.1.0 (aligned with [CHANGELOG.md](../CHANGELOG.md#110---2026-06-18))
+**Document version:** v1.1.1 (privacy documentation). See [README → Version history](../README.md#version-history).
 
 | Release | Architecture highlights |
 |---------|-------------------------|
+| **1.1.1** | Privacy & data-handling documentation (README, app sidebar, architecture) |
 | **1.1.0** | Docker topology, STIX export path, chain graph, split architecture doc, branding assets |
 | **1.0.0** | Chain pipeline, Streamlit MVP, polished demo data, pytest CI |
